@@ -205,6 +205,7 @@ jobs:
           # Write updated metadata
           with open('packages/emc_auditor/metadata.json', 'w') as f:
               json.dump(metadata, f, indent=2)
+              f.write('\n')  # Add trailing newline
           
           print(f"Updated metadata.json with version {new_version['version']}")
           EOF

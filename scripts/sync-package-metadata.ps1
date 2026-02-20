@@ -94,34 +94,34 @@ try {
     }
     
     if ($pluginIndex -eq -1) {
-        throw "Plugin '$($metadata.identifier)' not found in packages.json"
-    }
-
-    # Get current version in packages.json
-    $currentVersion = $packages.packages[$pluginIndex].versions[0].version
-    
-    if ($currentVersion -eq $latestVersion.version) {
-        Write-Host "  ✓ packages.json already has version $($latestVersion.version)" -ForegroundColor Yellow
-        Write-Host "  No changes needed to packages.json" -ForegroundColor Yellow
-        $packagesUpdated = $false
+        Write-Host "  Plugin not found in packages.json, adding it..." -ForegroundColor Yellow
+        # Add new plugin to packages array
+        $packages.packages += $metadata
+        $packagesUpdated = $true
     } else {
-        Write-Host "  Current version in packages.json: $currentVersion" -ForegroundColor White
-        Write-Host "  Updating to: $($latestVersion.version)" -ForegroundColor White
+        # Check if metadata changed
+        $currentMetadata = $packages.packages[$pluginIndex] | ConvertTo-Json -Depth 10
+        $newMetadata = $metadata | ConvertTo-Json -Depth 10
         
-        # Insert new version at the beginning
-        $newVersions = @($latestVersion) + $packages.packages[$pluginIndex].versions
-        
-        # Keep only last 5 versions
-        if ($newVersions.Count -gt 5) {
-            $newVersions = $newVersions[0..4]
+        if ($currentMetadata -eq $newMetadata) {
+            Write-Host "  ✓ packages.json already up to date" -ForegroundColor Yellow
+            Write-Host "  No changes needed" -ForegroundColor Yellow
+            $packagesUpdated = $false
+        } else {
+            Write-Host "  Current version: $($packages.packages[$pluginIndex].versions[0].version)" -ForegroundColor White
+            Write-Host "  Latest version: $($latestVersion.version)" -ForegroundColor White
+            
+            # Replace entire package entry with full metadata
+            $packages.packages[$pluginIndex] = $metadata
+            
+            $packagesUpdated = $true
         }
-        
-        $packages.packages[$pluginIndex].versions = $newVersions
-        
+    }
+    
+    if ($packagesUpdated) {
         # Save packages.json
         $packages | ConvertTo-Json -Depth 10 | Set-Content $packagesPath -Encoding UTF8
         Write-Host "  ✓ Updated packages.json" -ForegroundColor Green
-        $packagesUpdated = $true
     }
     Write-Host ""
 
