@@ -33,5 +33,26 @@
     "dxf",
     "openscad"
   ],
-  "versions": []
+  "versions": [
+    {
+      "version": "2.0.0",
+      "status": "stable",
+      "kicad_version": "8.0",
+      "kicad_version_max": "9.99",
+      "download_sha256": "dc84933bf31a3853bea1074571dc4e1a36c8dc4755f5d28ab6dde7ac4fffc14f",
+      "download_size": 54219,
+      "download_url": "$DOWNLOAD_URL",
+      "install_size": 64219,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "python_requires": ">=3.8",
+      "keep_on_update": [
+        "fixture_config.toml",
+        "sync_to_kicad_config.ps1"
+      ]
+    }
+  ]
 }
