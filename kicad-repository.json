@@ -14,12 +14,7 @@
       "description": "Automated laser-cuttable PCB test fixture generator",
       "identifier": "com.tinylabs.openfixture",
       "type": "plugin",
-      "author": {
-        "name": "Elliot Buller, Community Contributors",
-        "contact": {
-          "web": "https://github.com/tinylabs/openfixture"
-        }
-      },
+      "author": "Elliot Buller, Community Contributors",
       "license": "CC-BY-SA-4.0",
       "resources": {
         "homepage": "https://github.com/tinylabs/openfixture"
@@ -32,12 +27,7 @@
       "description": "Advanced EMC and signal integrity design rule checker",
       "identifier": "com.rolandwa.emc_auditor",
       "type": "plugin",
-      "author": {
-        "name": "Roland W",
-        "contact": {
-          "web": "https://github.com/RolandWa"
-        }
-      },
+      "author": "Roland W",
       "license": "MIT",
       "resources": {
         "homepage": "https://github.com/RolandWa/KiCAD_Custom_DRC"
