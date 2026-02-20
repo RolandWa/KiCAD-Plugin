@@ -1,30 +1,123 @@
 {
   "packages": [
     {
+      "$schema": "https://go.kicad.org/pcm/schemas/v1",
       "name": "OpenFixture",
-      "description": "Automated laser-cuttable PCB test fixture generator",
+      "description": "Automated laser-cuttable PCB test fixture generator. Creates manufacturing-ready DXF files for test fixtures with pogo pins, directly from your KiCAD PCB design.",
+      "description_full": "OpenFixture is a comprehensive PCB test fixture generator that integrates directly with KiCAD to automatically create laser-cuttable fixtures for your boards. The plugin analyzes your PCB design, identifies test points, and generates complete fixture designs including: laser-cut top/bottom plates, pogo pin placement, mounting hardware specifications, and 3D preview renders. Features include full KiCAD 9.0+ compatibility, TOML configuration system, multi-tab UI with material presets, support for both SMD and through-hole test points, and automatic OpenSCAD integration for DXF generation. Perfect for electronics manufacturing, rapid prototyping, and production testing.",
       "identifier": "com.tinylabs.openfixture",
       "type": "plugin",
-      "author": "Elliot Buller, Community Contributors",
+      "author": {
+        "name": "Elliot Buller",
+        "contact": {
+          "web": "https://tinylabs.io/openfixture"
+        }
+      },
+      "maintainer": {
+        "name": "OpenFixture Community",
+        "contact": {
+          "web": "https://github.com/tinylabs/openfixture"
+        }
+      },
       "license": "CC-BY-SA-4.0",
       "resources": {
-        "homepage": "https://github.com/tinylabs/openfixture"
+        "homepage": "https://github.com/tinylabs/openfixture",
+        "repository": "https://github.com/tinylabs/openfixture.git"
       },
-      "tags": ["test", "fixture", "manufacturing", "pogo pins", "laser cutting"],
-      "versions_url": "https://raw.githubusercontent.com/RolandWa/KiCAD-Plugin/main/packages/openfixture/metadata.json"
+      "tags": [
+        "test",
+        "fixture",
+        "manufacturing",
+        "pogo pins",
+        "laser cutting",
+        "testing",
+        "production",
+        "dxf",
+        "openscad"
+      ],
+      "versions": [
+        {
+          "version": "2.0.0",
+          "status": "stable",
+          "kicad_version": "8.0",
+          "kicad_version_max": "9.99",
+          "download_sha256": "",
+          "download_size": 0,
+          "download_url": "https://github.com/RolandWa/KiCAD-Plugin/releases/download/openfixture-v2.0.0/openfixture-2.0.0.zip",
+          "install_size": 0,
+          "platforms": [
+            "linux",
+            "macos",
+            "windows"
+          ],
+          "python_requires": ">=3.8",
+          "keep_on_update": [
+            "fixture_config.toml",
+            "sync_to_kicad_config.ps1"
+          ]
+        }
+      ]
     },
     {
+      "$schema": "https://go.kicad.org/pcm/schemas/v1",
       "name": "EMC Auditor (Custom DRC)",
-      "description": "Advanced EMC and signal integrity design rule checker",
+      "description": "Advanced EMC and signal integrity design rule checker with IEC60664-1 and IPC2221 compliance checking for professional PCB design.",
+      "description_full": "EMC Auditor is a sophisticated Design Rule Check (DRC) plugin for KiCAD that performs automated electromagnetic compatibility (EMC), signal integrity, and electrical safety checks. Features include: Via stitching analysis (ground plane connectivity), decoupling capacitor placement verification, ground plane continuity checking, EMI filter validation, clearance and creepage distance checking per IEC60664-1 (safety isolation), signal integrity framework with impedance control, trace width verification per IPC2221, and advanced pathfinding algorithms for spatial analysis. The plugin uses a modular architecture with TOML configuration, provides visual markers with grouping, progress dialogs, and comprehensive HTML reports. Perfect for professional PCB design, EMC compliance, safety certification, and high-speed signal routing.",
       "identifier": "com.rolandwa.emc_auditor",
       "type": "plugin",
-      "author": "Roland W",
+      "author": {
+        "name": "Roland W",
+        "contact": {
+          "web": "https://github.com/RolandWa"
+        }
+      },
+      "maintainer": {
+        "name": "Roland W",
+        "contact": {
+          "web": "https://github.com/RolandWa/KiCAD_Custom_DRC"
+        }
+      },
       "license": "MIT",
       "resources": {
-        "homepage": "https://github.com/RolandWa/KiCAD_Custom_DRC"
+        "homepage": "https://github.com/RolandWa/KiCAD_Custom_DRC",
+        "repository": "https://github.com/RolandWa/KiCAD_Custom_DRC.git"
       },
-      "tags": ["drc", "emc", "signal integrity", "compliance", "iec60664", "ipc2221"],
-      "versions_url": "https://raw.githubusercontent.com/RolandWa/KiCAD-Plugin/main/packages/emc_auditor/metadata.json"
+      "tags": [
+        "drc",
+        "emc",
+        "signal integrity",
+        "compliance",
+        "iec60664",
+        "ipc2221",
+        "safety",
+        "via stitching",
+        "decoupling",
+        "ground plane",
+        "clearance",
+        "creepage"
+      ],
+      "versions": [
+        {
+          "version": "1.4.0",
+          "status": "stable",
+          "kicad_version": "8.0",
+          "kicad_version_max": "9.99",
+          "download_sha256": "",
+          "download_size": 0,
+          "download_url": "https://github.com/RolandWa/KiCAD-Plugin/releases/download/emc_auditor-v1.4.0/emc_auditor-1.4.0.zip",
+          "install_size": 0,
+          "platforms": [
+            "linux",
+            "macos",
+            "windows"
+          ],
+          "python_requires": ">=3.8",
+          "keep_on_update": [
+            "emc_rules.toml",
+            "sync_to_kicad_config.ps1"
+          ]
+        }
+      ]
     }
   ]
 }
