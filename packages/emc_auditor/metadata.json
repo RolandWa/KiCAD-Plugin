@@ -44,7 +44,7 @@
       "kicad_version_max": "9.99",
       "download_sha256": "7cde7c3e68d37b2110525a9c6723f1dd7367785bfdd413013c286974b26a7bb6",
       "download_size": 93583,
-      "download_url": "$DOWNLOAD_URL",
+      "download_url": "https://github.com/RolandWa/KiCAD-Plugin/releases/download/emc_auditor-v1.0.0/emc_auditor-1.0.0.zip",
       "install_size": 103583,
       "platforms": [
         "linux",
