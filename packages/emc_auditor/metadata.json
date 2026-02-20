@@ -3,7 +3,7 @@
   "name": "EMC Auditor (Custom DRC)",
   "description": "Advanced EMC and signal integrity design rule checker with IEC60664-1 and IPC2221 compliance checking for professional PCB design.",
   "description_full": "EMC Auditor is a sophisticated Design Rule Check (DRC) plugin for KiCAD that performs automated electromagnetic compatibility (EMC), signal integrity, and electrical safety checks. Features include: Via stitching analysis (ground plane connectivity), decoupling capacitor placement verification, ground plane continuity checking, EMI filter validation, clearance and creepage distance checking per IEC60664-1 (safety isolation), signal integrity framework with impedance control, trace width verification per IPC2221, and advanced pathfinding algorithms for spatial analysis. The plugin uses a modular architecture with TOML configuration, provides visual markers with grouping, progress dialogs, and comprehensive HTML reports. Perfect for professional PCB design, EMC compliance, safety certification, and high-speed signal routing.",
-  "identifier": "com.rolandwa.emc_auditor",
+  "identifier": "com.rolandwa.emc-auditor",
   "type": "plugin",
   "author": {
     "name": "Roland W",

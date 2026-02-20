@@ -20,7 +20,7 @@ on:
 
 env:
   PLUGIN_NAME: emc_auditor
-  PLUGIN_IDENTIFIER: com.rolandwa.emc_auditor
+  PLUGIN_IDENTIFIER: com.rolandwa.emc-auditor
   SOURCE_REPO: RolandWa/KiCAD_Custom_DRC
   PYTHON_VERSION: '3.10'
 
