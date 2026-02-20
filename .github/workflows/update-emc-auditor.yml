@@ -24,6 +24,9 @@ env:
   SOURCE_REPO: RolandWa/KiCAD_Custom_DRC
   PYTHON_VERSION: '3.10'
 
+permissions:
+  contents: write  # Required to create releases and tags
+
 jobs:
   check-and-build:
     runs-on: ubuntu-latest
