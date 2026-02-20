@@ -27,18 +27,38 @@
       "tags": [
         "drc",
         "emc",
-        "signal-integrity",
+        "signal integrity",
         "compliance",
         "iec60664",
         "ipc2221",
         "safety",
-        "via-stitching",
+        "via stitching",
         "decoupling",
-        "ground-plane",
+        "ground plane",
         "clearance",
         "creepage"
       ],
       "versions": [
+        {
+          "version": "1.4.0",
+          "status": "stable",
+          "kicad_version": "8.0",
+          "kicad_version_max": "9.99",
+          "download_sha256": "3347536f0ab47295f005d7bbab0c87fbf64af835ea91ff923432ab3951f1163c",
+          "download_size": 93583,
+          "download_url": "$DOWNLOAD_URL",
+          "install_size": 103583,
+          "platforms": [
+            "linux",
+            "macos",
+            "windows"
+          ],
+          "python_requires": ">=3.8",
+          "keep_on_update": [
+            "emc_rules.toml",
+            "sync_to_kicad_config.ps1"
+          ]
+        },
         {
           "version": "1.0.0",
           "status": "stable",
@@ -48,6 +68,26 @@
           "download_size": 93583,
           "download_url": "https://github.com/RolandWa/KiCAD-Plugin/releases/download/emc_auditor-v1.0.0/emc_auditor-1.0.0.zip",
           "install_size": 103583,
+          "platforms": [
+            "linux",
+            "macos",
+            "windows"
+          ],
+          "python_requires": ">=3.8",
+          "keep_on_update": [
+            "emc_rules.toml",
+            "sync_to_kicad_config.ps1"
+          ]
+        },
+        {
+          "version": "1.4.0",
+          "status": "stable",
+          "kicad_version": "8.0",
+          "kicad_version_max": "9.99",
+          "download_sha256": "",
+          "download_size": 0,
+          "download_url": "https://github.com/RolandWa/KiCAD-Plugin/releases/download/emc_auditor-v1.4.0/emc_auditor-1.4.0.zip",
+          "install_size": 0,
           "platforms": [
             "linux",
             "macos",
