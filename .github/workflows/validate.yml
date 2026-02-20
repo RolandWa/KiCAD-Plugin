@@ -1,0 +1,219 @@
+name: Validate Repository
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'packages/**'
+      - 'kicad-repository.json'
+      - '.github/workflows/validate.yml'
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.10'
+
+      - name: Install dependencies
+        run: |
+          pip install jsonschema requests
+
+      - name: Validate JSON syntax
+        run: |
+          echo "Validating JSON files..."
+          python << 'EOF'
+          import json
+          import sys
+          
+          files_to_check = [
+              'kicad-repository.json',
+              'packages/openfixture/metadata.json',
+              'packages/emc_auditor/metadata.json'
+          ]
+          
+          errors = []
+          for file_path in files_to_check:
+              try:
+                  with open(file_path, 'r') as f:
+                      json.load(f)
+                  print(f"✅ {file_path}: Valid JSON")
+              except json.JSONDecodeError as e:
+                  errors.append(f"❌ {file_path}: {str(e)}")
+                  print(f"❌ {file_path}: {str(e)}")
+              except FileNotFoundError:
+                  print(f"⚠️  {file_path}: File not found (may be expected)")
+          
+          if errors:
+              sys.exit(1)
+          EOF
+
+      - name: Validate repository structure
+        run: |
+          echo "Checking repository structure..."
+          python << 'EOF'
+          import os
+          import sys
+          
+          required_files = {
+              'kicad-repository.json': 'Main repository index',
+              'README.md': 'Repository documentation',
+              'packages/openfixture/metadata.json': 'OpenFixture metadata',
+              'packages/emc_auditor/metadata.json': 'EMC Auditor metadata'
+          }
+          
+          recommended_files = {
+              'packages/openfixture/icon.png': 'OpenFixture icon',
+              'packages/openfixture/README.md': 'OpenFixture documentation',
+              'packages/emc_auditor/icon.png': 'EMC Auditor icon',
+              'packages/emc_auditor/README.md': 'EMC Auditor documentation'
+          }
+          
+          errors = []
+          warnings = []
+          
+          for file_path, description in required_files.items():
+              if os.path.exists(file_path):
+                  print(f"✅ {description}: {file_path}")
+              else:
+                  errors.append(f"❌ Missing required file: {file_path} ({description})")
+                  print(f"❌ Missing required file: {file_path} ({description})")
+          
+          for file_path, description in recommended_files.items():
+              if os.path.exists(file_path):
+                  print(f"✅ {description}: {file_path}")
+              else:
+                  warnings.append(f"⚠️  Missing recommended file: {file_path} ({description})")
+                  print(f"⚠️  Missing recommended file: {file_path} ({description})")
+          
+          if warnings:
+              print("\nWarnings found (non-blocking):")
+              for warning in warnings:
+                  print(warning)
+          
+          if errors:
+              sys.exit(1)
+          EOF
+
+      - name: Validate metadata schema
+        run: |
+          echo "Validating metadata against KiCAD PCM schema..."
+          python << 'EOF'
+          import json
+          import sys
+          
+          def validate_metadata(file_path, plugin_name):
+              with open(file_path, 'r') as f:
+                  metadata = json.load(f)
+              
+              required_fields = [
+                  'name', 'description', 'description_full', 'identifier',
+                  'type', 'author', 'license', 'resources', 'versions'
+              ]
+              
+              errors = []
+              warnings = []
+              
+              # Check required fields
+              for field in required_fields:
+                  if field not in metadata:
+                      errors.append(f"Missing required field: {field}")
+              
+              # Validate versions array
+              if 'versions' in metadata and len(metadata['versions']) > 0:
+                  version = metadata['versions'][0]
+                  version_fields = [
+                      'version', 'status', 'kicad_version',
+                      'download_sha256', 'download_size', 'download_url'
+                  ]
+                  
+                  for field in version_fields:
+                      if field not in version:
+                          errors.append(f"Missing version field: {field}")
+                      elif field == 'download_sha256' and version[field] == '':
+                          warnings.append(f"Empty download_sha256 (expected before build)")
+                      elif field == 'download_size' and version[field] == 0:
+                          warnings.append(f"Zero download_size (expected before build)")
+              else:
+                  errors.append("No versions defined in metadata")
+              
+              # Report results
+              print(f"\n{plugin_name} Validation:")
+              if errors:
+                  print(f"❌ Errors found:")
+                  for error in errors:
+                      print(f"   - {error}")
+              if warnings:
+                  print(f"⚠️  Warnings:")
+                  for warning in warnings:
+                      print(f"   - {warning}")
+              if not errors and not warnings:
+                  print(f"✅ All checks passed")
+              
+              return len(errors) == 0
+          
+          # Validate both plugins
+          openfixture_ok = validate_metadata('packages/openfixture/metadata.json', 'OpenFixture')
+          emc_auditor_ok = validate_metadata('packages/emc_auditor/metadata.json', 'EMC Auditor')
+          
+          if not (openfixture_ok and emc_auditor_ok):
+              sys.exit(1)
+          EOF
+
+      - name: Check URLs accessibility
+        run: |
+          echo "Checking URL accessibility..."
+          python << 'EOF'
+          import json
+          import requests
+          import sys
+          
+          def check_url(url, description):
+              try:
+                  response = requests.head(url, timeout=10, allow_redirects=True)
+                  if response.status_code < 400:
+                      print(f"✅ {description}: {url} (Status: {response.status_code})")
+                      return True
+                  else:
+                      print(f"❌ {description}: {url} (Status: {response.status_code})")
+                      return False
+              except requests.RequestException as e:
+                  print(f"⚠️  {description}: {url} (Error: {str(e)})")
+                  return True  # Don't fail on network errors, just warn
+          
+          # Check repository URLs
+          with open('kicad-repository.json', 'r') as f:
+              repo_data = json.load(f)
+          
+          all_ok = True
+          
+          for package in repo_data.get('packages', []):
+              if 'resources' in package and 'homepage' in package['resources']:
+                  homepage = package['resources']['homepage']
+                  check_url(homepage, f"{package['name']} homepage")
+              
+              # Note: Download URLs won't exist until after build
+              # We just validate the JSON structure, not actual file existence
+          
+          print("\nNote: Download URLs will be validated after plugin packages are built")
+          EOF
+
+      - name: Summary
+        run: |
+          echo "## Validation Complete! ✅" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "All JSON files are valid and repository structure is correct." >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Validated Files:" >> $GITHUB_STEP_SUMMARY
+          echo "- kicad-repository.json" >> $GITHUB_STEP_SUMMARY
+          echo "- packages/openfixture/metadata.json" >> $GITHUB_STEP_SUMMARY
+          echo "- packages/emc_auditor/metadata.json" >> $GITHUB_STEP_SUMMARY

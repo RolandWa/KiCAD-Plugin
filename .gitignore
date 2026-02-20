@@ -1,0 +1,28 @@
+# Build artifacts
+dist/
+*.zip
+!examples/*.zip
+
+# Python
+__pycache__/
+*.py[cod]
+*.so
+.Python
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Personal config
+*_config_local.*
+*.local.*
+sync_to_kicad_config.ps1
+
+# Logs
+*.log

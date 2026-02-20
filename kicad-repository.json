@@ -1,0 +1,39 @@
+{
+  "$schema": "https://go.kicad.org/pcm/schemas/v1",
+  "name": "RolandWa KiCAD Plugins Repository",
+  "description": "Custom KiCAD plugins for PCB design, testing, and manufacturing",
+  "maintainer": {
+    "name": "Roland W",
+    "contact": {
+      "web": "https://github.com/RolandWa"
+    }
+  },
+  "packages": [
+    {
+      "name": "OpenFixture",
+      "description": "Automated laser-cuttable PCB test fixture generator",
+      "identifier": "com.tinylabs.openfixture",
+      "type": "plugin",
+      "author": "Elliot Buller, Community Contributors",
+      "license": "CC-BY-SA-4.0",
+      "resources": {
+        "homepage": "https://github.com/tinylabs/openfixture"
+      },
+      "tags": ["test", "fixture", "manufacturing", "pogo pins", "laser cutting"],
+      "versions_url": "https://raw.githubusercontent.com/RolandWa/KiCAD-Plugin/main/packages/openfixture/metadata.json"
+    },
+    {
+      "name": "EMC Auditor (Custom DRC)",
+      "description": "Advanced EMC and signal integrity design rule checker",
+      "identifier": "com.rolandwa.emc_auditor",
+      "type": "plugin",
+      "author": "Roland W",
+      "license": "MIT",
+      "resources": {
+        "homepage": "https://github.com/RolandWa/KiCAD_Custom_DRC"
+      },
+      "tags": ["drc", "emc", "signal integrity", "compliance", "iec60664", "ipc2221"],
+      "versions_url": "https://raw.githubusercontent.com/RolandWa/KiCAD-Plugin/main/packages/emc_auditor/metadata.json"
+    }
+  ]
+}

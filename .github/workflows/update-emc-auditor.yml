@@ -1,0 +1,240 @@
+name: Auto-Update EMC Auditor Plugin
+
+# Trigger when EMC Auditor source repository is updated
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Plugin version (e.g., 1.4.1)'
+        required: true
+        type: string
+      source_tag:
+        description: 'Source repository tag/commit'
+        required: true
+        type: string
+  repository_dispatch:
+    types: [emc-auditor-release]
+  schedule:
+    # Check for updates daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  PLUGIN_NAME: emc_auditor
+  PLUGIN_IDENTIFIER: com.rolandwa.emc_auditor
+  SOURCE_REPO: RolandWa/KiCAD_Custom_DRC
+  PYTHON_VERSION: '3.10'
+
+jobs:
+  check-and-build:
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check_version.outputs.should_release }}
+      new_version: ${{ steps.check_version.outputs.new_version }}
+    
+    steps:
+      - name: Checkout KiCAD-Plugin repository
+        uses: actions/checkout@v4
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          fetch-depth: 0
+
+      - name: Checkout EMC Auditor source
+        uses: actions/checkout@v4
+        with:
+          repository: ${{ env.SOURCE_REPO }}
+          path: source
+          ref: ${{ github.event.inputs.source_tag || 'main' }}
+
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: ${{ env.PYTHON_VERSION }}
+
+      - name: Check for version update
+        id: check_version
+        run: |
+          # Get version from source repository
+          if [ -f "source/VERSION" ]; then
+            SOURCE_VERSION=$(cat source/VERSION | tr -d '[:space:]')
+          elif [ -f "source/setup.py" ]; then
+            SOURCE_VERSION=$(python -c "import re; content=open('source/setup.py').read(); print(re.search(r\"version=['\\\"]([^'\\\"]+)['\\\"]", content).group(1))")
+          elif [ "${{ github.event.inputs.version }}" != "" ]; then
+            SOURCE_VERSION="${{ github.event.inputs.version }}"
+          else
+            echo "Cannot determine source version"
+            exit 1
+          fi
+          
+          # Get current version from metadata.json
+          CURRENT_VERSION=$(python -c "import json; print(json.load(open('packages/emc_auditor/metadata.json'))['versions'][0]['version'])")
+          
+          echo "Source version: $SOURCE_VERSION"
+          echo "Current version: $CURRENT_VERSION"
+          
+          # Compare versions
+          if [ "$SOURCE_VERSION" != "$CURRENT_VERSION" ]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "new_version=$SOURCE_VERSION" >> $GITHUB_OUTPUT
+            echo "New version detected: $SOURCE_VERSION"
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "No version change detected"
+          fi
+
+      - name: Build plugin package
+        if: steps.check_version.outputs.should_release == 'true'
+        run: |
+          VERSION="${{ steps.check_version.outputs.new_version }}"
+          PACKAGE_NAME="${PLUGIN_NAME}-${VERSION}"
+          DIST_DIR="dist"
+          BUILD_DIR="build/${PLUGIN_NAME}"
+          
+          # Create directories
+          mkdir -p "$DIST_DIR"
+          mkdir -p "$BUILD_DIR/plugins"
+          
+          # Copy plugin files from source
+          echo "Copying plugin files..."
+          cp source/*.py "$BUILD_DIR/plugins/" 2>/dev/null || true
+          cp source/*.toml "$BUILD_DIR/plugins/" 2>/dev/null || true
+          cp source/README.md "$BUILD_DIR/plugins/" 2>/dev/null || true
+          cp source/LICENSE "$BUILD_DIR/plugins/" 2>/dev/null || true
+          
+          # Copy our repository-specific files
+          cp packages/emc_auditor/README.md "$BUILD_DIR/plugins/PLUGIN_README.md" 2>/dev/null || true
+          cp packages/emc_auditor/icon.png "$BUILD_DIR/plugins/icon.png" 2>/dev/null || true
+          
+          # Create metadata file
+          cat > "$BUILD_DIR/plugins/metadata.json" << EOF
+          {
+            "name": "EMC Auditor",
+            "version": "$VERSION",
+            "author": "Roland W",
+            "license": "MIT"
+          }
+          EOF
+          
+          # Create package
+          cd "$BUILD_DIR"
+          zip -r "../../$DIST_DIR/${PACKAGE_NAME}.zip" plugins/
+          cd ../..
+          
+          # Calculate SHA256
+          SHA256=$(sha256sum "$DIST_DIR/${PACKAGE_NAME}.zip" | awk '{print $1}')
+          SIZE=$(stat -f%z "$DIST_DIR/${PACKAGE_NAME}.zip" 2>/dev/null || stat -c%s "$DIST_DIR/${PACKAGE_NAME}.zip")
+          
+          echo "SHA256: $SHA256"
+          echo "Size: $SIZE bytes"
+          
+          # Save for next steps
+          echo "PACKAGE_FILE=${PACKAGE_NAME}.zip" >> $GITHUB_ENV
+          echo "PACKAGE_SHA256=$SHA256" >> $GITHUB_ENV
+          echo "PACKAGE_SIZE=$SIZE" >> $GITHUB_ENV
+          echo "VERSION=$VERSION" >> $GITHUB_ENV
+
+      - name: Create GitHub Release
+        if: steps.check_version.outputs.should_release == 'true'
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: ${{ env.PLUGIN_NAME }}-v${{ steps.check_version.outputs.new_version }}
+          name: EMC Auditor v${{ steps.check_version.outputs.new_version }}
+          body: |
+            # EMC Auditor v${{ steps.check_version.outputs.new_version }}
+            
+            Automated release from source repository update.
+            
+            ## Installation
+            
+            Install via KiCAD Plugin Manager:
+            1. Open KiCAD PCB Editor
+            2. Tools → Plugin and Content Manager
+            3. Add repository: `https://raw.githubusercontent.com/${{ github.repository }}/main/kicad-repository.json`
+            4. Search for "EMC Auditor"
+            5. Click Install
+            
+            ## Changes
+            
+            See source repository for detailed changelog: https://github.com/${{ env.SOURCE_REPO }}/releases
+            
+            ---
+            
+            **Package SHA256**: `${{ env.PACKAGE_SHA256 }}`
+          files: |
+            dist/${{ env.PACKAGE_FILE }}
+          draft: false
+          prerelease: false
+
+      - name: Update metadata.json
+        if: steps.check_version.outputs.should_release == 'true'
+        run: |
+          VERSION="${{ steps.check_version.outputs.new_version }}"
+          DOWNLOAD_URL="https://github.com/${{ github.repository }}/releases/download/${PLUGIN_NAME}-v${VERSION}/${PLUGIN_NAME}-${VERSION}.zip"
+          
+          # Update metadata.json with new version
+          python << 'EOF'
+          import json
+          from datetime import datetime
+          
+          # Read current metadata
+          with open('packages/emc_auditor/metadata.json', 'r') as f:
+              metadata = json.load(f)
+          
+          # Create new version entry
+          new_version = {
+              "version": "${{ env.VERSION }}",
+              "status": "stable",
+              "kicad_version": "8.0",
+              "kicad_version_max": "9.99",
+              "download_sha256": "${{ env.PACKAGE_SHA256 }}",
+              "download_size": int("${{ env.PACKAGE_SIZE }}"),
+              "download_url": "$DOWNLOAD_URL",
+              "install_size": int("${{ env.PACKAGE_SIZE }}") + 10000,
+              "platforms": ["linux", "macos", "windows"],
+              "python_requires": ">=3.8",
+              "keep_on_update": [
+                  "emc_rules.toml",
+                  "sync_to_kicad_config.ps1"
+              ]
+          }
+          
+          # Add to versions array (keep last 5 versions)
+          metadata['versions'].insert(0, new_version)
+          metadata['versions'] = metadata['versions'][:5]
+          
+          # Write updated metadata
+          with open('packages/emc_auditor/metadata.json', 'w') as f:
+              json.dump(metadata, f, indent=2)
+          
+          print(f"Updated metadata.json with version {new_version['version']}")
+          EOF
+
+      - name: Commit and push changes
+        if: steps.check_version.outputs.should_release == 'true'
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          git add packages/emc_auditor/metadata.json
+          git commit -m "Auto-update EMC Auditor to v${{ steps.check_version.outputs.new_version }}"
+          git push
+
+      - name: Summary
+        if: steps.check_version.outputs.should_release == 'true'
+        run: |
+          echo "## EMC Auditor Update Complete! 🚀" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "**Version**: ${{ steps.check_version.outputs.new_version }}" >> $GITHUB_STEP_SUMMARY
+          echo "**Package**: ${{ env.PACKAGE_FILE }}" >> $GITHUB_STEP_SUMMARY
+          echo "**SHA256**: \`${{ env.PACKAGE_SHA256 }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "**Size**: ${{ env.PACKAGE_SIZE }} bytes" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Plugin is now available for installation via KiCAD Plugin Manager!" >> $GITHUB_STEP_SUMMARY
+
+  notify:
+    runs-on: ubuntu-latest
+    needs: check-and-build
+    if: needs.check-and-build.outputs.should_release == 'true'
+    steps:
+      - name: Notify success
+        run: |
+          echo "EMC Auditor successfully updated to v${{ needs.check-and-build.outputs.new_version }}"

@@ -1,0 +1,61 @@
+{
+  "$schema": "https://go.kicad.org/pcm/schemas/v1",
+  "name": "EMC Auditor (Custom DRC)",
+  "description": "Advanced EMC and signal integrity design rule checker with IEC60664-1 and IPC2221 compliance checking for professional PCB design.",
+  "description_full": "EMC Auditor is a sophisticated Design Rule Check (DRC) plugin for KiCAD that performs automated electromagnetic compatibility (EMC), signal integrity, and electrical safety checks. Features include: Via stitching analysis (ground plane connectivity), decoupling capacitor placement verification, ground plane continuity checking, EMI filter validation, clearance and creepage distance checking per IEC60664-1 (safety isolation), signal integrity framework with impedance control, trace width verification per IPC2221, and advanced pathfinding algorithms for spatial analysis. The plugin uses a modular architecture with TOML configuration, provides visual markers with grouping, progress dialogs, and comprehensive HTML reports. Perfect for professional PCB design, EMC compliance, safety certification, and high-speed signal routing.",
+  "identifier": "com.rolandwa.emc_auditor",
+  "type": "plugin",
+  "author": {
+    "name": "Roland W",
+    "contact": {
+      "web": "https://github.com/RolandWa"
+    }
+  },
+  "maintainer": {
+    "name": "Roland W",
+    "contact": {
+      "web": "https://github.com/RolandWa/KiCAD_Custom_DRC"
+    }
+  },
+  "license": "MIT",
+  "resources": {
+    "homepage": "https://github.com/RolandWa/KiCAD_Custom_DRC",
+    "repository": "https://github.com/RolandWa/KiCAD_Custom_DRC.git"
+  },
+  "tags": [
+    "drc",
+    "emc",
+    "signal integrity",
+    "compliance",
+    "iec60664",
+    "ipc2221",
+    "safety",
+    "via stitching",
+    "decoupling",
+    "ground plane",
+    "clearance",
+    "creepage"
+  ],
+  "versions": [
+    {
+      "version": "1.4.0",
+      "status": "stable",
+      "kicad_version": "8.0",
+      "kicad_version_max": "9.99",
+      "download_sha256": "",
+      "download_size": 0,
+      "download_url": "https://github.com/RolandWa/KiCAD-Plugin/releases/download/emc_auditor-v1.4.0/emc_auditor-1.4.0.zip",
+      "install_size": 0,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "python_requires": ">=3.8",
+      "keep_on_update": [
+        "emc_rules.toml",
+        "sync_to_kicad_config.ps1"
+      ]
+    }
+  ]
+}
