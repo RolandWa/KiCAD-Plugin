@@ -22,7 +22,7 @@ on:
 env:
   PLUGIN_NAME: openfixture
   PLUGIN_IDENTIFIER: com.tinylabs.openfixture
-  SOURCE_REPO: tinylabs/openfixture
+  SOURCE_REPO: RolandWa/openfixture
   PYTHON_VERSION: '3.10'
 
 jobs:

@@ -19,8 +19,8 @@
   },
   "license": "CC-BY-SA-4.0",
   "resources": {
-    "homepage": "https://github.com/tinylabs/openfixture",
-    "repository": "https://github.com/tinylabs/openfixture.git"
+    "homepage": "https://github.com/RolandWa/openfixture",
+    "repository": "https://github.com/RolandWa/openfixture.git"
   },
   "tags": [
     "test",
