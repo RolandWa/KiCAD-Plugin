@@ -10,8 +10,8 @@
   },
   "packages": {
     "url": "https://raw.githubusercontent.com/RolandWa/KiCAD-Plugin/main/packages.json",
-    "sha256": "ce9ed3a01b6999feb3ce3a23eeab7d94a28d3e581d0adcc7ac233a062fb3871e",
-    "update_time_utc": "2026-02-20 13:40:00",
-    "update_timestamp": 1771594800
+    "sha256": "b7cb83f5d62adde0e165bc9d611f03f8e04e091cb51b4e72194f77fd92e0b182",
+    "update_time_utc": "2026-02-20 13:45:00",
+    "update_timestamp": 1771595100
   }
 }
