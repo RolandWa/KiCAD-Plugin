@@ -209,14 +209,95 @@ jobs:
           print(f"Updated metadata.json with version {new_version['version']}")
           EOF
 
-      - name: Commit and push changes
+      - name: Sync to packages.json
+        if: steps.check_version.outputs.should_release == 'true'
+        run: |
+          # Sync metadata.json to packages.json
+          python << 'EOF'
+          import json
+          
+          # Read metadata.json
+          with open('packages/emc_auditor/metadata.json', 'r') as f:
+              metadata = json.load(f)
+          
+          # Read packages.json
+          with open('packages.json', 'r') as f:
+              packages = json.load(f)
+          
+          # Find and update or create the package entry
+          found = False
+          for i, pkg in enumerate(packages['packages']):
+              if pkg.get('identifier') == metadata['identifier']:
+                  # Update existing package
+                  packages['packages'][i] = metadata
+                  found = True
+                  print(f"Updated {metadata['name']} in packages.json")
+                  break
+          
+          if not found:
+              # Add new package
+              packages['packages'].append(metadata)
+              print(f"Added {metadata['name']} to packages.json")
+          
+          # Write updated packages.json
+          with open('packages.json', 'w') as f:
+              json.dump(packages, f, indent=2)
+              f.write('\n')  # Add trailing newline
+          EOF
+
+      - name: Update kicad-repository.json with new SHA256
+        if: steps.check_version.outputs.should_release == 'true'
+        run: |
+          # Commit packages.json first so we can download it from GitHub
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          
+          git add packages/emc_auditor/metadata.json packages.json
+          git commit -m "Auto-update EMC Auditor to v${{ steps.check_version.outputs.new_version }}"
+          git push
+          
+          # Wait for GitHub to process the push
+          sleep 10
+          
+          # Download packages.json from GitHub to get correct hash (GitHub normalizes line endings)
+          PACKAGES_URL="https://raw.githubusercontent.com/${{ github.repository }}/main/packages.json"
+          curl -L -o packages-github.json "$PACKAGES_URL"
+          
+          # Calculate SHA256 of GitHub-served file
+          PACKAGES_SHA256=$(sha256sum packages-github.json | awk '{print $1}')
+          echo "packages.json SHA256: $PACKAGES_SHA256"
+          
+          # Update kicad-repository.json with new hash and timestamp
+          python << EOF
+          import json
+          from datetime import datetime, timezone
+          
+          # Read kicad-repository.json
+          with open('kicad-repository.json', 'r') as f:
+              repo = json.load(f)
+          
+          # Update packages URL entry
+          repo['packages']['url'] = 'https://raw.githubusercontent.com/${{ github.repository }}/main/packages.json'
+          repo['packages']['sha256'] = '$PACKAGES_SHA256'
+          repo['packages']['update_time_utc'] = datetime.now(timezone.utc).strftime('%Y-%m-%d %H:%M:%S')
+          repo['packages']['update_timestamp'] = int(datetime.now(timezone.utc).timestamp())
+          
+          # Write updated kicad-repository.json
+          with open('kicad-repository.json', 'w') as f:
+              json.dump(repo, f, indent=2)
+              f.write('\n')  # Add trailing newline
+          
+          print(f"Updated kicad-repository.json with SHA256: $PACKAGES_SHA256")
+          EOF
+
+      - name: Commit repository index changes
         if: steps.check_version.outputs.should_release == 'true'
         run: |
           git config --local user.email "github-actions[bot]@users.noreply.github.com"
           git config --local user.name "github-actions[bot]"
           
-          git add packages/emc_auditor/metadata.json
-          git commit -m "Auto-update EMC Auditor to v${{ steps.check_version.outputs.new_version }}"
+          git add kicad-repository.json
+          git commit -m "Update repository index after EMC Auditor v${{ steps.check_version.outputs.new_version }}" || echo "No changes to commit"
           git push
 
       - name: Summary
