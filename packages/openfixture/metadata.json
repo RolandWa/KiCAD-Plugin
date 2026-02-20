@@ -35,6 +35,26 @@
   ],
   "versions": [
     {
+      "version": "1.0.0",
+      "status": "stable",
+      "kicad_version": "8.0",
+      "kicad_version_max": "9.99",
+      "download_sha256": "a7a72805877fd931d4a27e55a4fb52a0b4088cf0354d1f3be62484aea54e57d9",
+      "download_size": 54219,
+      "download_url": "$DOWNLOAD_URL",
+      "install_size": 64219,
+      "platforms": [
+        "linux",
+        "macos",
+        "windows"
+      ],
+      "python_requires": ">=3.8",
+      "keep_on_update": [
+        "fixture_config.toml",
+        "sync_to_kicad_config.ps1"
+      ]
+    },
+    {
       "version": "2.0.0",
       "status": "stable",
       "kicad_version": "8.0",
