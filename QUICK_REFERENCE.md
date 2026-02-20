@@ -25,7 +25,41 @@ gh workflow run validate.yml
 
 ---
 
-## 📊 Monitoring
+## � Auto-Update Management
+
+### After Workflow Completes
+
+**Sync Single Plugin**:
+```powershell
+.\scripts\sync-package-metadata.ps1 -PluginName "emc_auditor"
+```
+
+**Sync All Plugins** (check all for updates):
+```powershell
+.\scripts\sync-all-plugins.ps1
+```
+
+**Preview Without Changes** (dry-run):
+```powershell
+.\scripts\sync-all-plugins.ps1 -WhatIf
+```
+
+### What These Scripts Do
+
+1. ✅ Pull latest changes from workflows
+2. ✅ Sync version from `metadata.json` → `packages.json`
+3. ✅ Calculate correct SHA256 hash from GitHub
+4. ✅ Update `kicad-repository.json` with hash & timestamp
+5. ✅ Commit and push all changes
+
+**When to Use**:
+- After manual workflow runs
+- After scheduled workflow runs (daily at 2 AM UTC)
+- When you see "Auto-update [Plugin]" commits in GitHub
+
+---
+
+## �📊 Monitoring
 
 **List recent runs**:
 ```bash
