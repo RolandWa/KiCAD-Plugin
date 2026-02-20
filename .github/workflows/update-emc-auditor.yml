@@ -255,6 +255,9 @@ jobs:
           
           git add packages/emc_auditor/metadata.json packages.json
           git commit -m "Auto-update EMC Auditor to v${{ steps.check_version.outputs.new_version }}"
+          
+          # Pull and rebase to handle any concurrent changes
+          git pull --rebase origin main
           git push
           
           # Wait for GitHub to process the push

@@ -257,6 +257,9 @@ jobs:
           
           git add packages/openfixture/metadata.json packages.json
           git commit -m "Auto-update OpenFixture to v${{ steps.check_version.outputs.new_version }}"
+          
+          # Pull and rebase to handle any concurrent changes
+          git pull --rebase origin main
           git push
           
           # Wait for GitHub to process the push
