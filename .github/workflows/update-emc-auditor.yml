@@ -67,7 +67,7 @@ jobs:
           fi
           
           # Get current version from metadata.json
-          CURRENT_VERSION=$(python -c "import json; print(json.load(open('packages/emc_auditor/metadata.json'))['versions'][0]['version'])")
+          CURRENT_VERSION=$(python -c "import json; versions = json.load(open('packages/emc_auditor/metadata.json'))['versions']; print(versions[0]['version'] if versions else '0.0.0')")
           
           echo "Source version: $SOURCE_VERSION"
           echo "Current version: $CURRENT_VERSION"
