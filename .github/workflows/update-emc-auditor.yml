@@ -5,12 +5,12 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Plugin version (e.g., 1.4.1)'
-        required: true
+        description: 'Plugin version (leave blank to auto-detect)'
+        required: false
         type: string
       source_tag:
-        description: 'Source repository tag/commit'
-        required: true
+        description: 'Source repository branch/tag (leave blank for main)'
+        required: false
         type: string
   repository_dispatch:
     types: [emc-auditor-release]
