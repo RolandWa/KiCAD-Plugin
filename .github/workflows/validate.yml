@@ -34,12 +34,20 @@ jobs:
           python << 'EOF'
           import json
           import sys
+          import os
           
           files_to_check = [
               'kicad-repository.json',
-              'packages/openfixture/metadata.json',
-              'packages/emc_auditor/metadata.json'
+              'packages.json'
           ]
+          
+          # Find all metadata.json files in packages/ directory
+          packages_dir = 'packages'
+          if os.path.exists(packages_dir):
+              for plugin_dir in os.listdir(packages_dir):
+                  metadata_path = os.path.join(packages_dir, plugin_dir, 'metadata.json')
+                  if os.path.exists(metadata_path):
+                      files_to_check.append(metadata_path)
           
           errors = []
           for file_path in files_to_check:
@@ -51,7 +59,7 @@ jobs:
                   errors.append(f"❌ {file_path}: {str(e)}")
                   print(f"❌ {file_path}: {str(e)}")
               except FileNotFoundError:
-                  print(f"⚠️  {file_path}: File not found (may be expected)")
+                  print(f"⚠️  {file_path}: File not found")
           
           if errors:
               sys.exit(1)
@@ -63,19 +71,12 @@ jobs:
           python << 'EOF'
           import os
           import sys
+          import json
           
           required_files = {
               'kicad-repository.json': 'Main repository index',
-              'README.md': 'Repository documentation',
-              'packages/openfixture/metadata.json': 'OpenFixture metadata',
-              'packages/emc_auditor/metadata.json': 'EMC Auditor metadata'
-          }
-          
-          recommended_files = {
-              'packages/openfixture/icon.png': 'OpenFixture icon',
-              'packages/openfixture/README.md': 'OpenFixture documentation',
-              'packages/emc_auditor/icon.png': 'EMC Auditor icon',
-              'packages/emc_auditor/README.md': 'EMC Auditor documentation'
+              'packages.json': 'Packages list',
+              'README.md': 'Repository documentation'
           }
           
           errors = []
@@ -88,12 +89,49 @@ jobs:
                   errors.append(f"❌ Missing required file: {file_path} ({description})")
                   print(f"❌ Missing required file: {file_path} ({description})")
           
-          for file_path, description in recommended_files.items():
-              if os.path.exists(file_path):
-                  print(f"✅ {description}: {file_path}")
-              else:
-                  warnings.append(f"⚠️  Missing recommended file: {file_path} ({description})")
-                  print(f"⚠️  Missing recommended file: {file_path} ({description})")
+          # Check package structure for plugins in packages.json
+          with open('packages.json', 'r') as f:
+              packages_data = json.load(f)
+          
+          for package in packages_data.get('packages', []):
+              identifier = package.get('identifier', '')
+              # Extract plugin folder name from identifier (e.g., com.rolandwa.emc-auditor -> emc_auditor)
+              # Note: This is a simplification; real folder names may vary
+              plugin_name = package.get('name', 'Unknown')
+              
+              # Check if we can find the package directory
+              packages_dir = 'packages'
+              found = False
+              if os.path.exists(packages_dir):
+                  for plugin_dir in os.listdir(packages_dir):
+                      metadata_path = os.path.join(packages_dir, plugin_dir, 'metadata.json')
+                      if os.path.exists(metadata_path):
+                          with open(metadata_path, 'r') as mf:
+                              meta = json.load(mf)
+                              if meta.get('identifier') == identifier:
+                                  print(f"✅ {plugin_name} package directory: packages/{plugin_dir}")
+                                  found = True
+                                  
+                                  # Check for recommended files
+                                  icon_path = os.path.join(packages_dir, plugin_dir, 'icon.png')
+                                  readme_path = os.path.join(packages_dir, plugin_dir, 'README.md')
+                                  
+                                  if os.path.exists(icon_path):
+                                      print(f"  ✅ Icon: {icon_path}")
+                                  else:
+                                      warnings.append(f"⚠️  {plugin_name} missing icon: {icon_path}")
+                                      print(f"  ⚠️  Missing icon: {icon_path}")
+                                  
+                                  if os.path.exists(readme_path):
+                                      print(f"  ✅ README: {readme_path}")
+                                  else:
+                                      warnings.append(f"⚠️  {plugin_name} missing README: {readme_path}")
+                                      print(f"  ⚠️  Missing README: {readme_path}")
+                                  break
+              
+              if not found:
+                  errors.append(f"❌ Package directory not found for {plugin_name} (identifier: {identifier})")
+                  print(f"❌ Package directory not found for {plugin_name} (identifier: {identifier})")
           
           if warnings:
               print("\nWarnings found (non-blocking):")
@@ -110,11 +148,9 @@ jobs:
           python << 'EOF'
           import json
           import sys
+          import os
           
-          def validate_metadata(file_path, plugin_name):
-              with open(file_path, 'r') as f:
-                  metadata = json.load(f)
-              
+          def validate_metadata(metadata, plugin_name):
               required_fields = [
                   'name', 'description', 'description_full', 'identifier',
                   'type', 'author', 'license', 'resources', 'versions'
@@ -161,11 +197,21 @@ jobs:
               
               return len(errors) == 0
           
-          # Validate both plugins
-          openfixture_ok = validate_metadata('packages/openfixture/metadata.json', 'OpenFixture')
-          emc_auditor_ok = validate_metadata('packages/emc_auditor/metadata.json', 'EMC Auditor')
+          # Read packages.json to get list of active plugins
+          with open('packages.json', 'r') as f:
+              packages_data = json.load(f)
           
-          if not (openfixture_ok and emc_auditor_ok):
+          # Validate only plugins that are in packages.json
+          all_ok = True
+          if packages_data.get('packages'):
+              print(f"Found {len(packages_data['packages'])} plugin(s) in packages.json")
+              for package in packages_data['packages']:
+                  ok = validate_metadata(package, package.get('name', 'Unknown'))
+                  all_ok = all_ok and ok
+          else:
+              print("⚠️  No packages found in packages.json")
+          
+          if not all_ok:
               sys.exit(1)
           EOF
 
@@ -190,13 +236,13 @@ jobs:
                   print(f"⚠️  {description}: {url} (Error: {str(e)})")
                   return True  # Don't fail on network errors, just warn
           
-          # Check repository URLs
-          with open('kicad-repository.json', 'r') as f:
-              repo_data = json.load(f)
+          # Check packages.json URLs
+          with open('packages.json', 'r') as f:
+              packages_data = json.load(f)
           
           all_ok = True
           
-          for package in repo_data.get('packages', []):
+          for package in packages_data.get('packages', []):
               if 'resources' in package and 'homepage' in package['resources']:
                   homepage = package['resources']['homepage']
                   check_url(homepage, f"{package['name']} homepage")
@@ -213,7 +259,21 @@ jobs:
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "All JSON files are valid and repository structure is correct." >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### Validated Files:" >> $GITHUB_STEP_SUMMARY
-          echo "- kicad-repository.json" >> $GITHUB_STEP_SUMMARY
-          echo "- packages/openfixture/metadata.json" >> $GITHUB_STEP_SUMMARY
-          echo "- packages/emc_auditor/metadata.json" >> $GITHUB_STEP_SUMMARY
+          python << 'EOF'
+          import json
+          
+          # Read packages.json
+          with open('packages.json', 'r') as f:
+              packages_data = json.load(f)
+          
+          print("### Validated Plugins:", flush=True)
+          if packages_data.get('packages'):
+              for package in packages_data['packages']:
+                  name = package.get('name', 'Unknown')
+                  version = 'Not specified'
+                  if package.get('versions') and len(package['versions']) > 0:
+                      version = package['versions'][0].get('version', 'Unknown')
+                  print(f"- {name} v{version}", flush=True)
+          else:
+              print("- No plugins currently in repository", flush=True)
+          EOF
