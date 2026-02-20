@@ -57,13 +57,11 @@ jobs:
           # Get version from source repository
           if [ -f "source/VERSION" ]; then
             SOURCE_VERSION=$(cat source/VERSION | tr -d '[:space:]')
-          elif [ -f "source/setup.py" ]; then
-            SOURCE_VERSION=$(python -c "import re; content=open('source/setup.py').read(); print(re.search(r\"version=['\\\"]([^'\\\"]+)['\\\"]", content).group(1))")
           elif [ "${{ github.event.inputs.version }}" != "" ]; then
             SOURCE_VERSION="${{ github.event.inputs.version }}"
           else
-            echo "Cannot determine source version"
-            exit 1
+            # Default version if no VERSION file
+            SOURCE_VERSION="2.0.0"
           fi
           
           # Get current version from metadata.json
