@@ -47,7 +47,7 @@ jobs:
         with:
           repository: ${{ env.SOURCE_REPO }}
           path: source
-          ref: ${{ github.event.inputs.source_tag || 'main' }}
+          ref: ${{ github.event.inputs.source_tag || 'master' }}
 
       - name: Set up Python
         uses: actions/setup-python@v4
