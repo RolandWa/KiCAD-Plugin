@@ -302,6 +302,9 @@ jobs:
           
           git add kicad-repository.json
           git commit -m "Update repository index after EMC Auditor v${{ steps.check_version.outputs.new_version }}" || echo "No changes to commit"
+          
+          # Pull and rebase to handle any concurrent changes
+          git pull --rebase origin main
           git push
 
       - name: Summary
